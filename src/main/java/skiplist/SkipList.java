@@ -1,11 +1,13 @@
 package skiplist;
 
+import java.util.Objects;
 import java.util.Random;
 
+// TODO: range access, estimated bytes, tombstones, concurrency...
 public class SkipList {
     private static final int MAX_LEVEL = 16; // For now, we will maintain a top limit for the level
 
-    private final Node head; // sentinel node
+    private final Node head; // Sentinel node
     private final Random random;
 
     private int level;
@@ -19,6 +21,7 @@ public class SkipList {
     }
 
     public void set(String key, String value) {
+        Objects.requireNonNull(key, "A key can not be null");
         Node[] update = new Node[MAX_LEVEL + 1];
         Node current = head;
 
@@ -32,7 +35,7 @@ public class SkipList {
         }
 
         // First node that could have the same key
-        Node next = current.forward[level];
+        Node next = current.forward[0];
 
         if (next != null && next.key.equals(key)) {
             next.value = value; // Update value
@@ -59,11 +62,13 @@ public class SkipList {
     }
 
     public boolean containsKey(String key) {
+        Objects.requireNonNull(key, "A key can not be null");
         Node current = searchKey(key);
         return current != null && current.key.equals(key);
     }
 
     public String get(String key) {
+        Objects.requireNonNull(key, "A key can not be null");
         Node current = searchKey(key);
         if (current != null && current.key.equals(key)) {
             return current.value;
@@ -74,7 +79,7 @@ public class SkipList {
     private Node searchKey(String key) {
         Node current = this.head;
         for (int i = level; i >= 0; i--) {
-            while(current.forward[i] != null && current.forward[i].key.compareTo(key) < 0) {
+            while (current.forward[i] != null && current.forward[i].key.compareTo(key) < 0) {
                 current = current.forward[i];
             }
         }
@@ -84,10 +89,11 @@ public class SkipList {
 
     // TODO: in the future tombstones have to be implemented
     public void delete(String key) {
+        Objects.requireNonNull(key, "A key can not be null");
         Node[] update = new Node[MAX_LEVEL + 1];
         Node current = this.head;
         for (int i = level; i >= 0; i--) {
-            while(current.forward[i] != null && current.forward[i].key.compareTo(key) < 0) {
+            while (current.forward[i] != null && current.forward[i].key.compareTo(key) < 0) {
                 current = current.forward[i];
             }
             update[i] = current;
@@ -103,6 +109,8 @@ public class SkipList {
             while (level > 0 && head.forward[level] == null) {
                 level--;
             }
+
+            size--;
         }
     }
 
