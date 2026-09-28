@@ -10,6 +10,6 @@ class Node {
     Node(String key, String value, int level) {
         this.key = key;
         this.value = value;
-        forward = new Node[level + 1];
+        this.forward = new Node[level + 1];
     }
 }

@@ -1,10 +1,12 @@
 package skiplist;
 
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
+import java.util.function.Consumer;
 
 // TODO: range access, estimated bytes, tombstones, concurrency...
-public class SkipList {
+
+// The Iterator returns key value pairs, hiding the internal Nodes
+public class SkipList implements Iterable<Map.Entry<String, String>> {
     private static final int MAX_LEVEL = 16; // For now, we will maintain a top limit for the level
 
     private final Node head; // Sentinel node
@@ -14,10 +16,10 @@ public class SkipList {
     private int size;
 
     public SkipList() {
-        head = new Node(null, null, MAX_LEVEL);
-        random = new Random();
-        level = 0;
-        size = 0;
+        this.head = new Node(null, null, MAX_LEVEL);
+        this.random = new Random();
+        this.level = 0;
+        this.size = 0;
     }
 
     public void set(String key, String value) {
@@ -112,6 +114,16 @@ public class SkipList {
 
             size--;
         }
+    }
+
+    @Override
+    public Iterator<Map.Entry<String, String>> iterator() {
+        return new SkipListIterator(this.head);
+    }
+
+    public Iterator<Map.Entry<String, String>> iteratorFrom(String fromInclusive) {
+        Objects.requireNonNull(fromInclusive, "A key can not be null");
+        return new SkipListIterator(searchKey(fromInclusive));
     }
 
     public int size() {
