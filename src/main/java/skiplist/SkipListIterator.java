@@ -4,9 +4,8 @@ import java.util.AbstractMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.function.Consumer;
 
-class SkipListIterator implements Iterator<Map.Entry<String, String>> {
+class SkipListIterator implements Iterator<Map.Entry<byte[], byte[]>> {
 
     Node nextNode;
 
@@ -20,7 +19,7 @@ class SkipListIterator implements Iterator<Map.Entry<String, String>> {
     }
 
     @Override
-    public Map.Entry<String, String> next() {
+    public Map.Entry<byte[], byte[]> next() {
         if (!hasNext()) {
             throw new NoSuchElementException();
         }

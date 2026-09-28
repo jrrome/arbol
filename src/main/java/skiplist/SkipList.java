@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 // TODO: range access, estimated bytes, tombstones, concurrency...
 
 // The Iterator returns key value pairs, hiding the internal Nodes
-public class SkipList implements Iterable<Map.Entry<String, String>> {
+public class SkipList implements Iterable<Map.Entry<byte[], byte[]>> {
     private static final int MAX_LEVEL = 16; // For now, we will maintain a top limit for the level
 
     private final Node head; // Sentinel node
@@ -22,7 +22,7 @@ public class SkipList implements Iterable<Map.Entry<String, String>> {
         this.size = 0;
     }
 
-    public void set(String key, String value) {
+    public void set(byte[] key, byte[] value) {
         Objects.requireNonNull(key, "A key can not be null");
         Node[] update = new Node[MAX_LEVEL + 1];
         Node current = head;
@@ -30,7 +30,8 @@ public class SkipList implements Iterable<Map.Entry<String, String>> {
         // Iterate through each level finding the previous node on each level
         for (int i = level; i >= 0; i--) {
             // While the key to insert follows the current key, advance
-            while (current.forward[i] != null && current.forward[i].key.compareTo(key) < 0) {
+            while (current.forward[i] != null
+                    && Arrays.compare(current.forward[i].key, key) < 0) {
                 current = current.forward[i];
             }
             update[i] = current;
@@ -39,7 +40,7 @@ public class SkipList implements Iterable<Map.Entry<String, String>> {
         // First node that could have the same key
         Node next = current.forward[0];
 
-        if (next != null && next.key.equals(key)) {
+        if (next != null && Arrays.equals(next.key, key)) {
             next.value = value; // Update value
             return;
         }
@@ -60,28 +61,27 @@ public class SkipList implements Iterable<Map.Entry<String, String>> {
         }
 
         size++;
-
     }
 
-    public boolean containsKey(String key) {
+    public boolean containsKey(byte[] key) {
         Objects.requireNonNull(key, "A key can not be null");
         Node current = searchKey(key);
-        return current != null && current.key.equals(key);
+        return current != null && Arrays.equals(current.key, key);
     }
 
-    public String get(String key) {
+    public byte[] get(byte[] key) {
         Objects.requireNonNull(key, "A key can not be null");
         Node current = searchKey(key);
-        if (current != null && current.key.equals(key)) {
+        if (current != null && Arrays.equals(current.key, key)) {
             return current.value;
         }
         return null;
     }
 
-    private Node searchKey(String key) {
+    private Node searchKey(byte[] key) {
         Node current = this.head;
         for (int i = level; i >= 0; i--) {
-            while (current.forward[i] != null && current.forward[i].key.compareTo(key) < 0) {
+            while (current.forward[i] != null && Arrays.compare(current.forward[i].key, key) < 0) {
                 current = current.forward[i];
             }
         }
@@ -90,19 +90,19 @@ public class SkipList implements Iterable<Map.Entry<String, String>> {
     }
 
     // TODO: in the future tombstones have to be implemented
-    public void delete(String key) {
+    public void delete(byte[] key) {
         Objects.requireNonNull(key, "A key can not be null");
         Node[] update = new Node[MAX_LEVEL + 1];
         Node current = this.head;
         for (int i = level; i >= 0; i--) {
-            while (current.forward[i] != null && current.forward[i].key.compareTo(key) < 0) {
+            while (current.forward[i] != null && Arrays.compare(current.forward[i].key, key) < 0) {
                 current = current.forward[i];
             }
             update[i] = current;
         }
         current = current.forward[0];
 
-        if (current != null && current.key.equals(key)) {
+        if (current != null && Arrays.equals(current.key, key)) {
             for (int i = 0; i <= level; i++) {
                 if (update[i].forward[i] != current) break;
                 update[i].forward[i] = current.forward[i];
@@ -117,11 +117,11 @@ public class SkipList implements Iterable<Map.Entry<String, String>> {
     }
 
     @Override
-    public Iterator<Map.Entry<String, String>> iterator() {
+    public Iterator<Map.Entry<byte[], byte[]>> iterator() {
         return new SkipListIterator(this.head);
     }
 
-    public Iterator<Map.Entry<String, String>> iteratorFrom(String fromInclusive) {
+    public Iterator<Map.Entry<byte[], byte[]>> iteratorFrom(byte[] fromInclusive) {
         Objects.requireNonNull(fromInclusive, "A key can not be null");
         return new SkipListIterator(searchKey(fromInclusive));
     }
