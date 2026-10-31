@@ -25,6 +25,6 @@ class SkipListIterator implements Iterator<Map.Entry<byte[], byte[]>> {
         }
         Node current = nextNode;
         nextNode = nextNode.forward[0];
-        return new AbstractMap.SimpleImmutableEntry<>(current.key, current.value);
+        return new AbstractMap.SimpleImmutableEntry<>(current.key.clone(), current.value.clone());
     }
 }

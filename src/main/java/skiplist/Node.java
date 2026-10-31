@@ -12,4 +12,8 @@ class Node {
         this.value = value;
         this.forward = new Node[level + 1];
     }
+
+    int size() {
+        return key.length + value.length;
+    }
 }

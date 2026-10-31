@@ -1,7 +1,6 @@
 package skiplist;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 // TODO: range access, estimated bytes, tombstones, concurrency...
 
@@ -14,16 +13,19 @@ public class SkipList implements Iterable<Map.Entry<byte[], byte[]>> {
 
     private int level;
     private int size;
+    private int numberOfNodes;
 
     public SkipList() {
         this.head = new Node(null, null, MAX_LEVEL);
         this.random = new Random();
         this.level = 0;
         this.size = 0;
+        this.numberOfNodes = 0;
     }
 
-    public void set(byte[] key, byte[] value) {
+    public void put(byte[] key, byte[] value) {
         Objects.requireNonNull(key, "A key can not be null");
+        Objects.requireNonNull(value, "A value can not be null");
         Node[] update = new Node[MAX_LEVEL + 1];
         Node current = head;
 
@@ -40,11 +42,15 @@ public class SkipList implements Iterable<Map.Entry<byte[], byte[]>> {
         // First node that could have the same key
         Node next = current.forward[0];
 
+        // Update value
         if (next != null && Arrays.equals(next.key, key)) {
-            next.value = value; // Update value
+            byte[] storedValue = value.clone();
+            this.size = this.size - next.value.length + value.length;
+            next.value = storedValue;
             return;
         }
 
+        // Insert nodes
         int insertLevel = randomLevel();
 
         if (insertLevel > level) {
@@ -54,13 +60,13 @@ public class SkipList implements Iterable<Map.Entry<byte[], byte[]>> {
             level = insertLevel;
         }
 
-        Node newNode = new Node(key, value, insertLevel);
+        Node newNode = new Node(key.clone(), value.clone(), insertLevel);
+        size += newNode.size();
         for (int i = 0; i <= insertLevel; i++) {
             newNode.forward[i] = update[i].forward[i];
             update[i].forward[i] = newNode;
         }
-
-        size++;
+        numberOfNodes++;
     }
 
     public boolean containsKey(byte[] key) {
@@ -73,7 +79,7 @@ public class SkipList implements Iterable<Map.Entry<byte[], byte[]>> {
         Objects.requireNonNull(key, "A key can not be null");
         Node current = searchKey(key);
         if (current != null && Arrays.equals(current.key, key)) {
-            return current.value;
+            return current.value.clone();
         }
         return null;
     }
@@ -103,6 +109,7 @@ public class SkipList implements Iterable<Map.Entry<byte[], byte[]>> {
         current = current.forward[0];
 
         if (current != null && Arrays.equals(current.key, key)) {
+            size -= current.size();
             for (int i = 0; i <= level; i++) {
                 if (update[i].forward[i] != current) break;
                 update[i].forward[i] = current.forward[i];
@@ -112,13 +119,13 @@ public class SkipList implements Iterable<Map.Entry<byte[], byte[]>> {
                 level--;
             }
 
-            size--;
+            numberOfNodes--;
         }
     }
 
     @Override
     public Iterator<Map.Entry<byte[], byte[]>> iterator() {
-        return new SkipListIterator(this.head);
+        return new SkipListIterator(this.head.forward[0]);
     }
 
     public Iterator<Map.Entry<byte[], byte[]>> iteratorFrom(byte[] fromInclusive) {
@@ -130,8 +137,12 @@ public class SkipList implements Iterable<Map.Entry<byte[], byte[]>> {
         return size;
     }
 
+    public int getNumberOfNodes() {
+        return numberOfNodes;
+    }
+
     public boolean isEmpty() {
-        return size == 0;
+        return numberOfNodes == 0;
     }
 
     // Higher levels are less likely to be chosen

@@ -57,10 +57,10 @@ class SkipListRandomizedTest {
                 case 0, 1 -> {
                     String value =
                             operations.nextInt(8) == 0
-                                    ? null
+                                    ? ""
                                     : "value-" + step;
 
-                    list.set(b(key), b(value));
+                    list.put(b(key), b(value));
                     expected.put(key, value);
                 }
 
@@ -86,7 +86,7 @@ class SkipListRandomizedTest {
 
             assertEquals(
                     expected.size(),
-                    list.size(),
+                    list.getNumberOfNodes(),
                     context
             );
 
@@ -96,8 +96,7 @@ class SkipListRandomizedTest {
                     context
             );
 
-            // Check the whole key universe, including absent
-            // and null-valued keys.
+            // Check the whole key universe, including absent keys and empty values.
             for (String candidate : keys) {
                 String message =
                         context + ", checking=" + candidate;
@@ -133,13 +132,13 @@ class SkipListRandomizedTest {
             Collections.shuffle(keys, order);
 
             for (String key : keys) {
-                list.set(
+                list.put(
                         b(key),
                         b("cycle-" + cycle + ":" + key)
                 );
             }
 
-            assertEquals(keys.size(), list.size());
+            assertEquals(keys.size(), list.getNumberOfNodes());
 
             for (String key : keys) {
                 assertArrayEquals(
@@ -167,7 +166,7 @@ class SkipListRandomizedTest {
 
                 assertEquals(
                         keys.size() - i - 1,
-                        list.size()
+                        list.getNumberOfNodes()
                 );
 
                 assertEquals(
